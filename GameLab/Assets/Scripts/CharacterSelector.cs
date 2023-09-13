@@ -9,8 +9,9 @@ public class CharacterSelector : MonoBehaviour
     public GameObject[] enemiesSelection;
     public GameObject enemySelector;
     private bool isCharacterSelected = true;
-    private int indexA = 0;
-    private int indexE = 0;
+    private bool isEnemySelected = false;
+    private int indexA;
+    private int indexE;
     // Start is called before the first frame update
     void Start()
     {
@@ -27,11 +28,18 @@ public class CharacterSelector : MonoBehaviour
 
         if (isCharacterSelected)
         {
+            enemySelector.SetActive(false);
             indexA = SelectYourCharacter(characterSelector, charactersSelection, indexA);
         }
         else
         {
-            indexE = SelectYourCharacter(enemySelector, enemiesSelection, indexE);
+            enemySelector.SetActive(true);
+            indexE = SelectYourCharacter(enemySelector, enemiesSelection, indexE);               
+            isEnemySelected = !isEnemySelected;
+        }
+        if(isCharacterSelected && isEnemySelected){
+            Debug.Log("El personaje " + indexA + " ha atacado al enemigo " + indexE);
+            isEnemySelected = !isEnemySelected;
         }
     }
     public int SelectYourCharacter(GameObject selector, GameObject[] selectionArray, int index)
