@@ -6,19 +6,39 @@ public class CharacterSelector : MonoBehaviour
 {
     public GameObject[] charactersSelection;
     public GameObject characterSelector;
+    public int[] charactersHealth;
+    public int[] charactersDamage;
     public GameObject[] enemiesSelection;
     public GameObject enemySelector;
+    public int[] enemiesHealth;
+    public int[] enemiesDamage;
     private bool isCharacterSelected = true;
     private bool isEnemySelected = false;
     private int indexA;
     private int indexE;
-    // Start is called before the first frame update
     void Start()
-    {
-        
+    {   
+        charactersSelection = GameObject.FindGameObjectsWithTag("Ally"); 
+        charactersHealth = new int [charactersSelection.Length];
+        charactersDamage = new int [charactersSelection.Length];
+
+        enemiesSelection = GameObject.FindGameObjectsWithTag("Enemy");
+        enemiesHealth = new int [enemiesSelection.Length];
+        enemiesDamage = new int [enemiesSelection.Length];
+        for(int i = 0; i < enemiesSelection.Length && i < charactersSelection.Length; i++){
+            GameManager healthValueE = enemiesSelection[i].GetComponent<GameManager>();
+            enemiesHealth[i] = healthValueE.healthE;  
+            GameManager DamageValueE = enemiesSelection[i].GetComponent<GameManager>();
+            enemiesDamage[i] = DamageValueE.damageE;
+
+            GameManager healthValueA = enemiesSelection[i].GetComponent<GameManager>();    
+            charactersHealth[i] = healthValueA.healthA;
+            GameManager DamageValueA = enemiesSelection[i].GetComponent<GameManager>();
+            charactersDamage[i] = DamageValueA.damageA;
+
+        }
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
@@ -38,13 +58,14 @@ public class CharacterSelector : MonoBehaviour
             isEnemySelected = !isEnemySelected;
         }
         if(isCharacterSelected && isEnemySelected){
-            Debug.Log("El personaje " + indexA + " ha atacado al enemigo " + indexE);
+            Combat(enemiesSelection, indexE, charactersDamage[indexA], enemiesHealth);
             isEnemySelected = !isEnemySelected;
+            
+            Combat(charactersSelection, 0, 0, charactersHealth);
         }
     }
     public int SelectYourCharacter(GameObject selector, GameObject[] selectionArray, int index)
     {
-
         UnityEngine.Vector3 characterPosition = selectionArray[index].transform.position;
         selector.transform.position = new UnityEngine.Vector3(selector.transform.position.x, selector.transform.position.y, characterPosition.z);
         if(Input.GetKeyDown(KeyCode.RightArrow)|| Input.GetKeyDown(KeyCode.DownArrow)){
@@ -64,5 +85,37 @@ public class CharacterSelector : MonoBehaviour
             }
         }
         return index;
+    }
+    void Combat(GameObject[] selection, int index, int damage, int[] healthArray){
+        if(selection == charactersSelection){
+            for(int i = 0; i < charactersSelection.Length; i++){
+                int rN = Random.Range(0,charactersSelection.Length);
+                charactersHealth[rN] -= enemiesDamage[i];
+                if(charactersHealth[rN] <= 0){              
+                    Destroy(charactersSelection[rN]);
+                    if(rN + 1 > charactersSelection.Length - 1){
+                        System.Array.Resize(ref charactersSelection, charactersSelection.Length -1);
+                    }
+                    else{
+                        charactersSelection[rN] = charactersSelection[rN+1];
+                    }
+                }
+                Debug.Log("Recibio daño"+ (rN+1) + " " + charactersHealth[i]);
+            }
+
+        }
+        else{
+            healthArray[index] -= damage;
+            if(healthArray[index] <= 0){ 
+                Destroy(selection[index]);
+                if(index + 1 > selection.Length - 1){
+                    System.Array.Resize(ref selection, selection.Length -1);
+                }
+                else{
+                    selection[index] = selection[index + 1];
+                }
+            }
+            Debug.Log("Daño al enemigo: "+ index+1 +" " + healthArray[index]);
+        }
     }
 }
